@@ -1,0 +1,1053 @@
+openapi: 3.0.3
+info:
+  title: Fikre's LMS API
+  version: 1.0.0
+  description: >
+    API specification for Fikre's LMS featuring user management,
+    course management, video lectures, resource library, discussion,
+    assessments, payments, notifications, analytics, and admin functions.
+servers:
+  - url: https://api.fikreslms.com/v1
+paths:
+  # -------------------------
+  # Authentication & Users
+  # -------------------------
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+  /auth/login:
+    post:
+      summary: Log in a user and receive a token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Unauthorized
+  /users/{userId}:
+    get:
+      summary: Get user profile by ID
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/{userId}:
+    put:
+      summary: Update user profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+      responses:
+        '200':
+          description: User profile updated successfully
+
+  # -------------------------
+  # Course Management
+  # -------------------------
+  /courses:
+    get:
+      summary: Retrieve list of courses
+      responses:
+        '200':
+          description: List of courses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+    post:
+      summary: Create a new course (Instructor)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseCreate'
+      responses:
+        '201':
+          description: Course created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+  /courses/{courseId}:
+    get:
+      summary: Retrieve course details
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Course details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+    put:
+      summary: Update course details (Instructor/Admin)
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseUpdate'
+      responses:
+        '200':
+          description: Course updated successfully
+    delete:
+      summary: Delete a course (Admin)
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Course deleted successfully
+
+  # -------------------------
+  # Lectures & Video Content
+  # -------------------------
+  /courses/{courseId}/lectures:
+    get:
+      summary: Get lectures for a course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of lectures
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Lecture'
+    post:
+      summary: Create a new lecture (Instructor)
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LectureCreate'
+      responses:
+        '201':
+          description: Lecture created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lecture'
+  /courses/{courseId}/lectures/{lectureId}:
+    get:
+      summary: Get lecture details
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: lectureId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lecture details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lecture'
+    put:
+      summary: Update lecture details (Instructor)
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: lectureId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LectureUpdate'
+      responses:
+        '200':
+          description: Lecture updated successfully
+
+  # -------------------------
+  # Resource Library
+  # -------------------------
+  /courses/{courseId}/resources:
+    get:
+      summary: Retrieve resources for a course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Resource'
+    post:
+      summary: Upload a new resource (Instructor)
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResourceUpload'
+      responses:
+        '201':
+          description: Resource uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+  /courses/{courseId}/resources/{resourceId}:
+    get:
+      summary: Get resource details
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Resource details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource'
+  
+  # -------------------------
+  # Discussions & Community
+  # -------------------------
+  /courses/{courseId}/discussions:
+    get:
+      summary: Get discussions for a course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of discussions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Discussion'
+    post:
+      summary: Create a new discussion thread
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscussionCreate'
+      responses:
+        '201':
+          description: Discussion created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Discussion'
+  /discussions/{discussionId}:
+    get:
+      summary: Get discussion details and replies
+      parameters:
+        - name: discussionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Discussion details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Discussion'
+    put:
+      summary: Update a discussion thread (Author/Moderator)
+      parameters:
+        - name: discussionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiscussionUpdate'
+      responses:
+        '200':
+          description: Discussion updated successfully
+    delete:
+      summary: Delete a discussion (Moderator/Admin)
+      parameters:
+        - name: discussionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Discussion deleted successfully
+
+  # -------------------------
+  # Assessments & Engagement
+  # -------------------------
+  /courses/{courseId}/quizzes:
+    get:
+      summary: Get quizzes for a course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of quizzes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Quiz'
+    post:
+      summary: Create a new quiz (Instructor)
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizCreate'
+      responses:
+        '201':
+          description: Quiz created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quiz'
+  /quizzes/{quizId}/questions:
+    post:
+      summary: Add a question to a quiz
+      parameters:
+        - name: quizId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizQuestion'
+      responses:
+        '201':
+          description: Question added successfully
+
+  /courses/{courseId}/assignments:
+    get:
+      summary: Get assignments for a course
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of assignments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assignment'
+    post:
+      summary: Create a new assignment (Instructor)
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentCreate'
+      responses:
+        '201':
+          description: Assignment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+  /assignments/{assignmentId}/submissions:
+    post:
+      summary: Submit an assignment
+      parameters:
+        - name: assignmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AssignmentSubmission'
+      responses:
+        '201':
+          description: Assignment submitted successfully
+
+  # -------------------------
+  # Payments & Subscriptions
+  # -------------------------
+  /payments:
+    post:
+      summary: Process a payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+      responses:
+        '201':
+          description: Payment processed successfully
+  /subscriptions:
+    get:
+      summary: Get user's subscriptions
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of subscriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+    post:
+      summary: Create a new subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionCreate'
+      responses:
+        '201':
+          description: Subscription created successfully
+
+  # -------------------------
+  # Notifications
+  # -------------------------
+  /notifications:
+    get:
+      summary: Get notifications for a user
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+
+  # -------------------------
+  # Admin & Moderation
+  # -------------------------
+  /admin/users:
+    get:
+      summary: Admin - List all users
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+  /admin/logs:
+    get:
+      summary: Retrieve admin audit logs
+      responses:
+        '200':
+          description: List of audit logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminLog'
+  /admin/moderation/flags:
+    get:
+      summary: Retrieve moderation flags
+      responses:
+        '200':
+          description: List of moderation flags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModerationFlag'
+components:
+  schemas:
+    # -------------------------
+    # User Schemas
+    # -------------------------
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        email:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+    UserRegistration:
+      type: object
+      required:
+        - email
+        - password
+        - first_name
+        - last_name
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+    UserLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    UserUpdate:
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone_number:
+          type: string
+
+    # -------------------------
+    # Course Schemas
+    # -------------------------
+    Course:
+      type: object
+      properties:
+        course_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        instructor_id:
+          type: integer
+        category_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+    CourseCreate:
+      type: object
+      required:
+        - title
+        - description
+        - instructor_id
+        - category_id
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        instructor_id:
+          type: integer
+        category_id:
+          type: integer
+    CourseUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category_id:
+          type: integer
+
+    # -------------------------
+    # Lecture Schemas
+    # -------------------------
+    Lecture:
+      type: object
+      properties:
+        lecture_id:
+          type: integer
+        course_id:
+          type: integer
+        title:
+          type: string
+        video_url:
+          type: string
+        drm_info:
+          type: string
+        allow_download:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    LectureCreate:
+      type: object
+      required:
+        - title
+        - video_url
+        - allow_download
+      properties:
+        title:
+          type: string
+        video_url:
+          type: string
+        drm_info:
+          type: string
+        allow_download:
+          type: boolean
+    LectureUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        video_url:
+          type: string
+        drm_info:
+          type: string
+        allow_download:
+          type: boolean
+
+    # -------------------------
+    # Resource Schemas
+    # -------------------------
+    Resource:
+      type: object
+      properties:
+        resource_id:
+          type: integer
+        course_id:
+          type: integer
+        title:
+          type: string
+        resource_type:
+          type: string
+        file_url:
+          type: string
+        allow_download:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    ResourceUpload:
+      type: object
+      required:
+        - title
+        - resource_type
+        - file
+      properties:
+        title:
+          type: string
+        resource_type:
+          type: string
+        file:
+          type: string
+          format: binary
+
+    # -------------------------
+    # Discussion Schemas
+    # -------------------------
+    Discussion:
+      type: object
+      properties:
+        discussion_id:
+          type: integer
+        course_id:
+          type: integer
+        user_id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        parent_id:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+    DiscussionCreate:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        parent_id:
+          type: integer
+          nullable: true
+    DiscussionUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+
+    # -------------------------
+    # Quiz Schemas
+    # -------------------------
+    Quiz:
+      type: object
+      properties:
+        quiz_id:
+          type: integer
+        course_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    QuizCreate:
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+    QuizQuestion:
+      type: object
+      required:
+        - question_text
+        - question_type
+      properties:
+        question_text:
+          type: string
+        question_type:
+          type: string
+          enum: [MCQ, TrueFalse]
+        options:
+          type: object
+          description: JSON object with key-value pairs for options
+        correct_answer:
+          type: string
+
+    # -------------------------
+    # Assignment Schemas
+    # -------------------------
+    Assignment:
+      type: object
+      properties:
+        assignment_id:
+          type: integer
+        course_id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        due_date:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+    AssignmentCreate:
+      type: object
+      required:
+        - title
+        - description
+        - due_date
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        due_date:
+          type: string
+          format: date-time
+    AssignmentSubmission:
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          type: string
+          format: binary
+        version:
+          type: integer
+
+    # -------------------------
+    # Payment & Subscription Schemas
+    # -------------------------
+    Payment:
+      type: object
+      required:
+        - user_id
+        - payment_type
+        - amount
+      properties:
+        user_id:
+          type: integer
+        payment_type:
+          type: string
+          enum: [Subscription, OneTime]
+        amount:
+          type: number
+          format: float
+        transaction_id:
+          type: string
+    Subscription:
+      type: object
+      properties:
+        subscription_id:
+          type: integer
+        user_id:
+          type: integer
+        plan:
+          type: string
+          enum: [Monthly, Yearly]
+        start_date:
+          type: string
+          format: date-time
+        end_date:
+          type: string
+          format: date-time
+        status:
+          type: string
+    SubscriptionCreate:
+      type: object
+      required:
+        - user_id
+        - plan
+      properties:
+        user_id:
+          type: integer
+        plan:
+          type: string
+          enum: [Monthly, Yearly]
+
+    # -------------------------
+    # Notification Schema
+    # -------------------------
+    Notification:
+      type: object
+      properties:
+        notification_id:
+          type: integer
+        user_id:
+          type: integer
+        type:
+          type: string
+        message:
+          type: string
+        is_read:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    # -------------------------
+    # Admin & Moderation Schemas
+    # -------------------------
+    AdminLog:
+      type: object
+      properties:
+        log_id:
+          type: integer
+        admin_id:
+          type: integer
+        action:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ModerationFlag:
+      type: object
+      properties:
+        flag_id:
+          type: integer
+        flagged_by:
+          type: integer
+        discussion_id:
+          type: integer
+          nullable: true
+        resource_id:
+          type: integer
+          nullable: true
+        reason:
+          type: string
+        status:
+          type: string
+          enum: [pending, reviewed, dismissed]
+        created_at:
+          type: string
+          format: date-time
