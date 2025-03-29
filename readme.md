@@ -71,6 +71,3 @@
 - **API Rate Limiting**: Prevent abuse with API rate limiting.
 - **Content Encryption & Anti-Piracy Measures**: Protect content with encryption and anti-piracy measures.
 - **Caching for Faster Access**: Improve performance with caching.
-
----
-Answer from Perplexity: pplx.ai/share
